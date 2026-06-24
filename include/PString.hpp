@@ -2,8 +2,8 @@
 #include "Common.hpp"
 #include <string>
 #include <charconv>
-#include <expected>
-#include <system_error>
+#include <cstring>
+#include <utility>
 
 DOTL_NAMESPACE_BEGIN(dotl)
 
@@ -30,7 +30,7 @@ public:
 
 // struct parsable-string: std::string compatible type for parsing
 // values from strings easily with methods out of the box
-struct PString
+struct [[nodiscard]] PString
 {
     std::string m_data;
 
@@ -53,9 +53,43 @@ public:
 
     template<typename T>
     ParseRes<T> parse() = delete;
+
+    PString& reverse() {
+        usize slen = m_data.size();
+        for (usize i=0;  i < slen/2u;  ++i) {
+            std::swap(m_data[i], m_data[slen-i-1]);
+        }
+        return *this;
+    }
+
+    PString& rmFirst(char c) {
+        usize idx = m_data.find(c);
+        if (idx != std::string::npos)  m_data.erase(idx, 1);
+        return *this;
+    }
+    PString& rmFirst(const char* cstr) {
+        if (!cstr) return *this;
+        usize idx = m_data.find(cstr);
+        if (idx != std::string::npos) {
+            m_data.erase(idx, std::strlen(cstr));
+        }
+        return *this;
+    }
+    PString& rmLast(char c) {
+        usize idx = m_data.rfind(c);
+        if (idx != std::string::npos)  m_data.erase(idx, 1);
+        return *this;
+    }
+    PString& rmLast(const char* cstr) {
+        if (!cstr) return *this;
+        usize idx = m_data.rfind(cstr);
+        if (idx != std::string::npos) {
+            m_data.erase(idx, std::strlen(cstr));
+        }
+        return *this;
+    }
 };
 
-// 
 template<> inline
 ParseRes<int32> PString::parse<int32>() { return impl_parse<int32>(); }
 template<> inline
