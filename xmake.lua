@@ -29,7 +29,7 @@ set_toolchains("dotline.gnu")
 --- SCRIPT-END
 
 --- GLOBAL
-add_includedirs("src/")
+add_includedirs(".", "include/")
 
 --- TESTS
 target("raw-input")
@@ -40,4 +40,4 @@ target("raw-input")
 target("dotline")
     set_kind("headeronly")
     set_languages("c++17")
-    add_headerfiles("src/**.hpp")
+    add_headerfiles("include/**.hpp")
