@@ -25,14 +25,14 @@ struct Prompter {
 
 
 // prompt string
-static Prompter _prompt(void* _msg) {
+static inline Prompter _prompt(void* _msg) {
     bufCtl().setPrompt((char*)_msg);
     return Prompter{};
 }
-Prompter prompt(const char* prompt_message) {
+inline Prompter prompt(const char* prompt_message) {
     return _prompt((char*)prompt_message);
 }
-Prompter prompt(const std::string& prompt_message) {
+inline Prompter prompt(const std::string& prompt_message) {
     return _prompt((char*)prompt_message.data());
 }
 

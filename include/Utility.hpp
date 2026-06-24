@@ -23,24 +23,24 @@ namespace util {
 
 
 // returns true if `c` is printable in terminal
-bool is_printable(char c) {
+inline bool is_printable(char c) {
     return (c >= ' ') && (c <= '~');
 }
 
 // returns true if `c` is ansi character
-bool is_ansi(char c) {
+inline bool is_ansi(char c) {
     return c == '\033';
 }
 
 // return true if `c` is standart after-ansi character
-bool is_after_ansi(char c) {
+inline bool is_after_ansi(char c) {
     return
         c=='[' || c=='O'
     ;
 }
 
 // return true if `c` is standart after-ansi lead character
-bool is_after_ansi_lead(char c) {
+inline bool is_after_ansi_lead(char c) {
     return (c>63 && c<127);  // 64='@', 126='~'
 }
 
