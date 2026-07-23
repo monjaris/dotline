@@ -1,5 +1,5 @@
 #pragma once
-#include "Core.hpp"
+#include "core.hpp"
 
 
 DOTL_NAMESPACE_BEGIN(dotl)
@@ -36,6 +36,12 @@ inline bool is_after_ansi(char c) {
     return
         c=='[' || c=='O'
     ;
+}
+
+inline char ctrl_bind(char key) {
+    if (::islower(key)) return key-'a'+1;
+    else if (::isupper(key)) return key-'A'+1;
+    return '\0';
 }
 
 // return true if `c` is standart after-ansi lead character

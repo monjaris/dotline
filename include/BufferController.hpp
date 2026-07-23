@@ -130,17 +130,19 @@ public:
     }
     // Clear entire line
     void clearLine() {
-        write_sv("\033[2K");
-        m_pos = 0;
+        lineHome();
+        clearLineRight();
+        _redraw(m_pos);
     }
     // Clear from cursor to end of line
     void clearLineRight() {
-        write_sv("\033[K");
+        m_buffer = m_buffer.substr(0, m_pos);
+        _redraw(m_pos);
     }
     // Clear from start of line to cursor
     void clearLineLeft() {
-        write_sv("\033[1K");
-        m_pos = 0;
+        m_buffer = m_buffer.substr(m_pos, std::string::npos);
+        _redraw(m_pos);
     }
     // Go to line start
     void lineHome() {

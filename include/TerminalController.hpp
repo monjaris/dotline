@@ -1,5 +1,5 @@
 #pragma once
-#include "Utility.hpp"
+#include "utility.hpp"
 
 // *dotline* This is dotty's header-only module for reading lines without noise
 // Unlike readline.h, it is not required to link it to any library
@@ -37,10 +37,10 @@ class TerminalController {
 
 public:
 
-    enum class TermMode {
+    enum class Mode {
         ANSI, RAW, ESC
     };
-    TermMode m_mode = TermMode::ANSI;
+    Mode m_mode = Mode::ANSI;
 
 
     // disable copying as construction
@@ -60,7 +60,7 @@ public:
     Ctermios getTermIOS() { return m_term; }
     Ctermios* TermIOS() { return &m_term; }
 
-    void setMode(TermMode mode) {
+    void setMode(Mode mode) {
         if (mode == m_mode) return;
         else {
             m_mode = mode;
@@ -70,13 +70,13 @@ public:
         ::tcgetattr(STDIN_FILENO, &m_term);
         Ctermios term_new = m_term;
         switch (mode) {
-            case TermMode::ANSI: {
+            case Mode::ANSI: {
                 mEnableAnsi(term_new); break;
             };
-            case TermMode::RAW: {
+            case Mode::RAW: {
                 mEnableRaw(term_new); break;
             }
-            case TermMode::ESC: {
+            case Mode::ESC: {
                 mEnableEsc(term_new); break;
             }
         };

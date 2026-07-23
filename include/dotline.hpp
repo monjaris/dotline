@@ -41,7 +41,7 @@ inline Prompter prompt(const std::string& prompt_message) {
 // no ansi escape character noise!
 inline PString read_string() {
     auto& tctl = TermCtl();
-    tctl.setMode(TerminalController::TermMode::RAW);
+    tctl.setMode(TerminalController::Mode::RAW);
 
     auto& bufctl = BufCtl();
     bufctl.clear();
@@ -55,19 +55,31 @@ inline PString read_string() {
         else if (c0 == '\r') {
             break;
         }
+
         else if (c0==127 || c0=='\b') {
             bufctl.deleteBack();
         }
+        else if (c0 == ctrl_bind('A')) {
+            bufctl.lineHome();
+        }
+        else if (c0 == ctrl_bind('B')) {
+            bufctl.lineEnd();
+        }
+        else if (c0 == ctrl_bind('E')) {
+            bufctl.lineEnd();
+        }
+        else if (c0 == ctrl_bind('L')) {
+            bufctl.clearLine();
+        }
+
         // ansi characters
-        else if (c0 == '\033') {
-            tctl.setMode(TerminalController::TermMode::ESC);
-            char e;
+        else if (c0 == '\033') {  // skip "^["
+            tctl.setMode(TerminalController::Mode::ESC);
+            char es;
+
             // read for after-escapes
-            if (read_ch(e)) {
-                // Both CSI (ESC '[' X) and SS3 (ESC 'O' X) variants use the
-                // same trailing letter for arrow keys (A/B/C/D), depending
-                // on whether the terminal is in application cursor-key mode.
-                if (e=='[' || e=='O') {
+            if (read_ch(es)) {
+                if (es=='[' || es=='O') {
                     char lead;
                     if (read_ch(lead)) {
                         if (lead == 'D' && bufctl.pos()>0) {
@@ -81,9 +93,13 @@ inline PString read_string() {
                         }
                     }
                 }
+                // Alt + L
+                else if (es == 'l') {
+                    bufctl.clearLine();
+                }
             }
 
-            tctl.setMode(TerminalController::TermMode::RAW);
+            tctl.setMode(TerminalController::Mode::RAW);
         }
         // printable characters
         else if (is_printable(c0)) {
