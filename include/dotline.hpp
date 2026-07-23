@@ -40,13 +40,11 @@ inline Prompter prompt(const std::string& prompt_message) {
 // reads input and writes it to string
 // no ansi escape character noise!
 inline PString read_string() {
-    std::string str;
-    str.clear();
-
     auto& tctl = TermCtl();
     tctl.setMode(TerminalController::TermMode::RAW);
 
     auto& bufctl = BufCtl();
+    bufctl.clear();
 
     char c0;
     while (read_ch(c0))
@@ -58,10 +56,7 @@ inline PString read_string() {
             break;
         }
         else if (c0==127 || c0=='\b') {
-            if (!str.empty() && bufctl.pos()>0) {
-                str.erase(bufctl.pos()-1, 1);
-                bufctl.deleteBack();
-            }
+            bufctl.deleteBack();
         }
         // ansi characters
         else if (c0 == '\033') {
@@ -69,13 +64,15 @@ inline PString read_string() {
             char e;
             // read for after-escapes
             if (read_ch(e)) {
-                char lead;
-                if (e=='[') {
-                    // read for after-escape-leads
-                    while (read_ch(lead)) {
+                // Both CSI (ESC '[' X) and SS3 (ESC 'O' X) variants use the
+                // same trailing letter for arrow keys (A/B/C/D), depending
+                // on whether the terminal is in application cursor-key mode.
+                if (e=='[' || e=='O') {
+                    char lead;
+                    if (read_ch(lead)) {
                         if (lead == 'D' && bufctl.pos()>0) {
                             bufctl.cursorStep(1, BufferController::Left);
-                        } else if (lead == 'C' && bufctl.pos()<str.size()) {
+                        } else if (lead == 'C' && bufctl.pos() < bufctl.length()) {
                             bufctl.cursorStep(1, BufferController::Right);
                         } else if (lead == 'A') {
                             bufctl.lineHome();
@@ -84,32 +81,20 @@ inline PString read_string() {
                         }
                     }
                 }
-                else if (e=='O') {
-                    char e_lead;
-                    // read for after-escape-leads
-                    while (read_ch(e_lead)) {
-                        if (is_after_ansi_lead(e_lead)) break;
-                        switch (e_lead) {
-                            ;
-                        };
-                    }
-                }
             }
 
             tctl.setMode(TerminalController::TermMode::RAW);
         }
         // printable characters
         else if (is_printable(c0)) {
-            str.insert(str.begin()+bufctl.pos(), c0);
             bufctl.insert(c0);
         }
     }
     write_ch('\n');
 
     tctl.restore();
-    return PString{str};
+    return PString{bufctl.string()};
 }
-
 
 
 DOTL_NAMESPACE_END()

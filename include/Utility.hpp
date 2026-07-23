@@ -43,23 +43,21 @@ inline bool is_after_ansi_lead(char c) {
     return (c>63 && c<127);  // 64='@', 126='~'
 }
 
-
-inline isize read_cstr(char& cstr, isize n) {
-    return ::read(STDIN_FILENO, &cstr, n);
-}
-
 inline bool read_ch(char& c) {
-    return read_cstr(c, 1) == 1;
+    return ::read(STDIN_FILENO, &c, 1) == 1;
 }
 
-inline usize write_cstr(const char* cstr, usize leave_last_n_bytes=0) {
-    usize cstr_len = std::strlen(cstr);
-    ::write(STDOUT_FILENO, cstr, cstr_len - leave_last_n_bytes);
-    return cstr_len;
+inline isize read_cstr(const char* cstr, isize n) {
+    return ::read(STDIN_FILENO, (void*)cstr, n);
 }
 
 inline void write_ch(char c) {
     ::write(STDOUT_FILENO, &c, 1);
+}
+
+inline usize write_sv(const std::string_view sv, usize leave_last_n_bytes=0) {
+    ::write(STDOUT_FILENO, sv.data(), sv.size() - leave_last_n_bytes);
+    return sv.size() - leave_last_n_bytes;
 }
 
 

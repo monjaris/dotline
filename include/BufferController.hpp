@@ -5,53 +5,77 @@
 DOTL_NAMESPACE_BEGIN(dotl)
 
 class BufferController {
-    usize m_beg = 0;  // beginning of the stream, prompt's end position
-    usize m_len = 0;  // the length of the line between last character and `m_beg`
-    usize m_pos = 0;  // the position of the vcursor between `m_beg` and `m_beg+m_len`
+    std::u32string m_buffer = {};  // internal buffer
+    usize m_beg = {0};  // beginning of the stream, prompt's end position
+    usize m_pos = {0};  // the position of the vcursor between `m_beg` and `m_beg+m_len`
 
-    void bump_len() {
-        if (m_pos > m_len) {
-            m_len = m_pos;
+    // Redraws the line from buffer index `from` to the end, reflecting m_buffer's
+    // current content, assuming the terminal's physical cursor is currently sitting
+    // at the column corresponding to `from`. Repositions the cursor back to m_pos
+    // once done. This is what makes insert/delete visually correct instead of
+    // just overwriting whatever was already on screen.
+    void _redraw(usize from) {
+        std::string tail(m_buffer.begin() + from, m_buffer.end());
+        write_sv("\033[K");   // clear from cursor to end of line
+        write_sv(tail);       // print the up-to-date tail
+
+        usize move_back = tail.size() - (m_pos - from);
+        if (move_back > 0) {
+            char buf[32];
+            char* ptr = buf;
+            *ptr++ = '\033';
+            *ptr++ = '[';
+            auto to_chars = std::to_chars(ptr, buf+sizeof(buf)-1, move_back);
+            if (to_chars.ec != std::errc{}) return;
+            ptr = to_chars.ptr;
+            *ptr++ = 'D';
+            *ptr = '\0';
+            write_sv(buf);
         }
     }
+
 public:
     // disable copying as construction
     BufferController (const BufferController&) = delete;
     // default ctor
-    BufferController () = default;
+    BufferController () { m_buffer.reserve(128); };
 
 
     enum Dir : unsigned char {
         Up='A', Down='B', Right='C', Left='D'
     };
 
+    usize length() { return m_buffer.size(); }
+    std::string string() { return std::string(m_buffer.begin(), m_buffer.end()); }
+    void clear() { m_buffer.clear(); m_pos = 0; }
+
     usize pos() { return m_pos; }
     void setPos(usize pos) { m_pos = pos; }
     void setPosRel(usize pos) { m_pos += pos; }
-    // get length of the line
-    usize length() { return m_len; }
 
     // Write characters and increment axis index
     void insert(char c) {
-        write_ch(c);
-        ++m_pos;
-        bump_len();
+        usize at = m_pos;
+        m_buffer.insert(m_buffer.begin() + at, c);
+        m_pos = at + 1;
+        _redraw(at);
     }
-    usize insert(const char* cstr) {
-        usize ins_len = write_cstr(cstr);
-        m_pos += ins_len;
-        bump_len();
-        return ins_len;
+    usize insert(std::string_view cstr) {
+        usize at = m_pos;
+        m_buffer.insert(m_buffer.begin() + at, cstr.begin(), cstr.end());
+        m_pos = at + cstr.size();
+        _redraw(at);
+        return cstr.size();
     }
     // Prompt text
-    void setPrompt(const char* prompt_text) {
-        usize prompt_len = write_cstr(prompt_text);
+    void setPrompt(std::string_view prompt_text) {
+        usize prompt_len = write_sv(prompt_text.data());
         m_beg = prompt_len;
     }
 
     // go to position in line
     void goTo(usize n) {
-        if (n > m_len) return;
+        if (n > m_buffer.size()) return;
         char buffer[64];
         char* ptr = buffer;
         *ptr++ = '\033';
@@ -62,7 +86,7 @@ public:
         ptr = to_chars.ptr;
         *ptr++ = 'G';
         *ptr = '\0';
-        write_cstr(buffer);
+        write_sv(buffer);
         m_pos = n;
     }
 
@@ -86,33 +110,36 @@ public:
                 m_pos -= n; break;
             }
             case Right: {
-                if (m_pos+n > m_len) return 0;
+                if (m_pos+n > m_buffer.size()) return 0;
                 m_pos += n; break;
             }
             case Up: case Down: break;
         }
-        write_cstr(buf);
-        bump_len();
+        write_sv(buf);
         return n;
     }
 
     // delete previous standing character
     void deleteBack() {
-        write_cstr("\b \b");
-        if (m_pos != 0) m_pos -= 1;
+        if (m_pos == 0) return;
+        usize at = m_pos - 1;
+        m_buffer.erase(at, 1);
+        m_pos = at;
+        write_sv("\b");   // move terminal cursor back one column to `at`
+        _redraw(at);
     }
     // Clear entire line
     void clearLine() {
-        write_cstr("\033[2K");
+        write_sv("\033[2K");
         m_pos = 0;
     }
     // Clear from cursor to end of line
     void clearLineRight() {
-        write_cstr("\033[K");
+        write_sv("\033[K");
     }
     // Clear from start of line to cursor
     void clearLineLeft() {
-        write_cstr("\033[1K");
+        write_sv("\033[1K");
         m_pos = 0;
     }
     // Go to line start
@@ -121,7 +148,7 @@ public:
     }
     // Go to line end
     void lineEnd() {
-        goTo(m_len);
+        goTo(m_buffer.size());
     }
 };
 
@@ -132,4 +159,3 @@ inline BufferController& BufCtl() {
 }
 
 DOTL_NAMESPACE_END()
-
