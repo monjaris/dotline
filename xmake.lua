@@ -30,11 +30,10 @@ set_toolchains("dotline.gnu")
 
 --- GLOBAL
 add_includedirs(".", "include/")
+set_languages("c++23")
 
 --- TESTS
-target("raw-input")
-    set_languages("c++20")
-    add_files("tests/dotline.cpp")
+target("main") add_files("tests/main.cpp")
 
 --- TARGETS
 target("dotline")

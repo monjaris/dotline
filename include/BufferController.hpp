@@ -4,7 +4,7 @@
 
 DOTL_NAMESPACE_BEGIN(dotl)
 
-class BufCtl {
+class BufferController {
     usize m_beg = 0;  // beginning of the stream, prompt's end position
     usize m_len = 0;  // the length of the line between last character and `m_beg`
     usize m_pos = 0;  // the position of the vcursor between `m_beg` and `m_beg+m_len`
@@ -15,7 +15,13 @@ class BufCtl {
         }
     }
 public:
-    enum Dir : char {
+    // disable copying as construction
+    BufferController (const BufferController&) = delete;
+    // default ctor
+    BufferController () = default;
+
+
+    enum Dir : unsigned char {
         Up='A', Down='B', Right='C', Left='D'
     };
 
@@ -61,7 +67,7 @@ public:
     }
 
     // Step cursor right n times
-    int cursorStep(usize n, BufCtl::Dir direction) {
+    int cursorStep(usize n, BufferController::Dir direction) {
         char buf[64];
         char* ptr = buf;
         *ptr++ = '\033';
@@ -119,8 +125,9 @@ public:
     }
 };
 
-inline BufCtl& bufCtl() {
-    static BufCtl buffer_controller;
+// BufferController disables copying at construction, reference instead
+inline BufferController& BufCtl() {
+    static BufferController buffer_controller;
     return buffer_controller;
 }
 

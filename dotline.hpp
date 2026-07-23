@@ -26,7 +26,7 @@ struct Prompter {
 
 // prompt string
 static inline Prompter _prompt(void* _msg) {
-    bufCtl().setPrompt((char*)_msg);
+    BufCtl().setPrompt((char*)_msg);
     return Prompter{};
 }
 inline Prompter prompt(const char* prompt_message) {
@@ -43,10 +43,10 @@ inline PString read_string() {
     std::string str;
     str.clear();
 
-    TermCtl tctl = termCtl();
-    tctl.setMode(TermCtl::TermMode::RAW);
+    auto& tctl = TermCtl();
+    tctl.setMode(TerminalController::TermMode::RAW);
 
-    BufCtl bufctl = bufCtl();
+    auto& bufctl = BufCtl();
 
     char c0;
     while (read_ch(c0))
@@ -65,7 +65,7 @@ inline PString read_string() {
         }
         // ansi characters
         else if (c0 == '\033') {
-            tctl.setMode(TermCtl::TermMode::ESC);
+            tctl.setMode(TerminalController::TermMode::ESC);
             char e;
             // read for after-escapes
             if (read_ch(e)) {
@@ -74,9 +74,9 @@ inline PString read_string() {
                     // read for after-escape-leads
                     while (read_ch(lead)) {
                         if (lead == 'D' && bufctl.pos()>0) {
-                            bufctl.cursorStep(1, BufCtl::Left);
+                            bufctl.cursorStep(1, BufferController::Left);
                         } else if (lead == 'C' && bufctl.pos()<str.size()) {
-                            bufctl.cursorStep(1, BufCtl::Right);
+                            bufctl.cursorStep(1, BufferController::Right);
                         } else if (lead == 'A') {
                             bufctl.lineHome();
                         } else if (lead == 'B') {
@@ -96,7 +96,7 @@ inline PString read_string() {
                 }
             }
 
-            tctl.setMode(TermCtl::TermMode::RAW);
+            tctl.setMode(TerminalController::TermMode::RAW);
         }
         // printable characters
         else if (is_printable(c0)) {

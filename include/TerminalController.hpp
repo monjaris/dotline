@@ -10,27 +10,27 @@
 DOTL_NAMESPACE_BEGIN(dotl)
 
 
-class TermCtl {
-    using Termios = ::termios;
+class TerminalController {
+    using Ctermios = ::termios;
 
-    Termios m_orig;
-    Termios m_term;
+    Ctermios m_orig;
+    Ctermios m_term;
     bool restored = true;
 
     // ANSI
-    static void mEnableAnsi(Termios& term_new) {
+    static void mEnableAnsi(Ctermios& term_new) {
         term_new.c_lflag |= ECHO;  // enable echo
         term_new.c_lflag |= ICANON;  // enable canonical mode
     }
     // RAW
-    static void mEnableRaw(Termios& term_new) {
+    static void mEnableRaw(Ctermios& term_new) {
         term_new.c_lflag &= ~ECHO;  // disable echo
         term_new.c_lflag &= ~ICANON;  // disable canonical mode
         term_new.c_cc[VMIN]  = 1;  // 1 char to read() for
         term_new.c_cc[VTIME] = 0;  //  x 100ms
     }
     // Escape sequence
-    static void mEnableEsc(Termios& term_new) {
+    static void mEnableEsc(Ctermios& term_new) {
         term_new.c_cc[VMIN]  = 0;
         term_new.c_cc[VTIME] = 1;
     }
@@ -43,15 +43,22 @@ public:
     TermMode m_mode = TermMode::ANSI;
 
 
-    TermCtl () {
+    // disable copying as construction
+    TerminalController (const TerminalController&) = delete;
+    // default ctor
+    TerminalController () {
         tcgetattr(STDIN_FILENO, &m_orig);
     }
+    // dtor
+    ~TerminalController () {
+        this->restore();
+    }
 
-    Termios getOriginal() { return m_orig; }
-    Termios* Original() { return &m_orig; }
+    Ctermios getOriginal() { return m_orig; }
+    Ctermios* Original() { return &m_orig; }
 
-    Termios getTermIOS() { return m_term; }
-    Termios* TermIOS() { return &m_term; }
+    Ctermios getTermIOS() { return m_term; }
+    Ctermios* TermIOS() { return &m_term; }
 
     void setMode(TermMode mode) {
         if (mode == m_mode) return;
@@ -61,7 +68,7 @@ public:
         }
 
         ::tcgetattr(STDIN_FILENO, &m_term);
-        Termios term_new = m_term;
+        Ctermios term_new = m_term;
         switch (mode) {
             case TermMode::ANSI: {
                 mEnableAnsi(term_new); break;
@@ -83,14 +90,13 @@ public:
         }
     }
 
-    ~TermCtl () {
-        this->restore();
-    }
-
 };
 
-inline TermCtl& termCtl() {
-    static TermCtl terminal_controller;
+
+// `TerminalController` disables copying at construction
+// Initialize with `auto&` or `TerminalController&` instead
+inline TerminalController& TermCtl() {
+    static TerminalController terminal_controller;
     return terminal_controller;
 }
 

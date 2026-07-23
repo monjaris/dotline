@@ -1,6 +1,6 @@
 [
 {
   "directory": "/home/ziya/dev/main/dotline",
-  "arguments": ["/usr/bin/g++", "-c", "-g", "-O0", "-std=c++20", "-I.", "-Iinclude", "-o", "build/.objs/raw-input/linux/x86_64/debug/tests/dotline.cpp.o", "tests/dotline.cpp"],
-  "file": "tests/dotline.cpp"
+  "arguments": ["/usr/bin/g++", "-c", "-g", "-O0", "-std=c++23", "-I.", "-Iinclude", "-o", "build/.objs/main/linux/x86_64/debug/tests/main.cpp.o", "tests/main.cpp"],
+  "file": "tests/main.cpp"
 }]

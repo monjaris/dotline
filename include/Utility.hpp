@@ -21,7 +21,6 @@ namespace util {
 
 
 
-
 // returns true if `c` is printable in terminal
 inline bool is_printable(char c) {
     return (c >= ' ') && (c <= '~');
@@ -62,8 +61,6 @@ inline usize write_cstr(const char* cstr, usize leave_last_n_bytes=0) {
 inline void write_ch(char c) {
     ::write(STDOUT_FILENO, &c, 1);
 }
-
-
 
 
 DOTL_NAMESPACE_END()
