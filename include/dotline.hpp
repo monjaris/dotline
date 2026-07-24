@@ -5,8 +5,8 @@
 
 #pragma once
 //
-#include "BufferController.hpp"
-#include "PString.hpp"
+#include "detail/BufferController.hpp"
+#include "detail/PString.hpp"
 
 DOTL_NAMESPACE_BEGIN(dotl)
 
