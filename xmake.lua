@@ -31,6 +31,7 @@ set_toolchains("dotline.gnu")
 --- GLOBAL
 add_includedirs(".", "include/")
 set_languages("c++23")
+add_cxxflags("-Wall")
 
 --- TESTS
 target("main") add_files("tests/main.cpp")

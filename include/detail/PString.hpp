@@ -16,7 +16,7 @@ struct ParseRes {
 private:
     Err m_err;
     T m_val;
-    ParseRes (Err error, T value): m_val(value),m_err(error) {}
+    ParseRes (Err error, T value): m_err(error), m_val(value)  {}
 public:
 
     static ParseRes Success(T val) { return ParseRes{Err::None, val}; }
