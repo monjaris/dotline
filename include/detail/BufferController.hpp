@@ -9,11 +9,8 @@ class BufferController {
     usize m_beg = {0};  // beginning of the stream, prompt's end position
     usize m_pos = {0};  // the position of the vcursor between `m_beg` and `m_beg+m_len`
 
-    // Redraws the line from buffer index `from` to the end, reflecting m_buffer's
-    // current content, assuming the terminal's physical cursor is currently sitting
-    // at the column corresponding to `from`. Repositions the cursor back to m_pos
-    // once done. This is what makes insert/delete visually correct instead of
-    // just overwriting whatever was already on screen.
+
+    // Redraws the line from buffer index `from` to the end, reflecting m_buffer's current content
     void _redraw(usize from) {
         std::string tail(m_buffer.begin() + from, m_buffer.end());
         write_sv("\033[K");   // clear from cursor to end of line
