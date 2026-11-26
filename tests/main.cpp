@@ -1,4 +1,4 @@
-#include "dotline.hpp"
+#include "dotline/dotline.hpp"
 #include <iostream>
 
 int main()

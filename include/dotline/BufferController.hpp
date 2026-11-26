@@ -78,7 +78,7 @@ public:
         *ptr++ = '\033';
         *ptr++ = '[';
         // \no-heap convert line-length to integer and go to char based on that
-        auto to_chars = std::to_chars(ptr, buffer+sizeof(buffer)-1, m_beg + n + 1);
+        auto to_chars = std::to_chars(ptr, buffer+sizeof(buffer)-1, m_beg + n);
         if (to_chars.ec != std::errc{}) return;
         ptr = to_chars.ptr;
         *ptr++ = 'G';
